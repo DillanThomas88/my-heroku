@@ -16,11 +16,9 @@ app.listen(PORT, () =>
   console.log(`Example app listening at http://localhost:${PORT}`)
 );
 app.post('/notes', (req, res) => {
-  console.info(`${req.method} request received to add a tip`);
 
   const { title, text, id } = req.body;
 
-  console.log(req.body)
   if (req.body) {
     const newnote = {
       title,
@@ -33,7 +31,17 @@ app.post('/notes', (req, res) => {
     res.error('Error in adding note');
   }
 });
-
+app.delete('/notes/:id', (req, res) => {
+  if (req) {
+    readAndDelete(req.params.id, './public/db/db.json');
+    res.json(`note deleted`);
+  } else {
+    res.error('Error in removing note');
+  }
+});
+app.get('*', (req, res) =>
+  res.sendFile(path.join(__dirname, 'public/index.html'))
+);
 const readAndAppend = (content, file) => {
   fs.readFile(file, 'utf8', (err, data) => {
     if (err) {
@@ -52,30 +60,15 @@ const readAndDelete = (id, file) => {
       console.error(err)
     } else {
       const parsedData = JSON.parse(data);
-      // --------------------------------------------------------------------- weird
-      // console.log('--------------');
-      // console.log(parsedData)
-      // let updatedData = parsedData.filter(element => element.id !== id)
       parsedData.forEach(element => {
         if(element.id == id){
           parsedData.splice(element,1)
         }
       })
-      // console.log('--------------');
-      // console.log(parsedData);
-      // --------------------------------------------------------------------- weird
       writeToFile(file, parsedData);
     }
   });
 };
-app.delete('/notes/:id', (req, res) => {
-  if (req) {
-    readAndDelete(req.params.id, './public/db/db.json');
-    res.json(`note deleted`);
-  } else {
-    res.error('Error in removing note');
-  }
-});
 
 const writeToFile = (destination, content) =>
   fs.writeFile(destination, JSON.stringify(content, null, 4), (err) =>
